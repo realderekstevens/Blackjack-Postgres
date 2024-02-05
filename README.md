@@ -15,6 +15,7 @@ ALTER TABLE cards ADD COLUMN card_count_complex integer;
 
 
 
+
    
 CREATE TABLE suits(suit_id int, suit_name varchar(255));
 
@@ -131,6 +132,17 @@ CREATE TABLE locations();
 ALTER TABLE locations ADD COLUMN location_id SERIAL PRIMARY KEY;
 ALTER TABLE locations ADD COLUMN name varchar(20);
 ALTER TABLE locations ADD COLUMN v\dalue integer;
+
+CREATE TABLE scores(
+   score_id INT GENERATED ALWAYS AS IDENTITY,
+   turn_id INT,
+   location_id SMALLINT,
+   score int NOT NULL,
+   PRIMARY KEY(score_id));
+      CONSTRAINT fk_location
+      FOREIGN KEY(location_id)
+	  REFERENCES locations(location_id)
+	  ON DELETE CASCADE);
 
 CREATE TABLE values();
 ALTER TABLE values ADD COLUMN value_id SERIAL PRIMARY KEY;

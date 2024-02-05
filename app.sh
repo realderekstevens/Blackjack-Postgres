@@ -1,7 +1,5 @@
 #!/bin/bash
-
 PSQL="psql -X --username=postgres --dbname=blackjack --tuples-only -c"
-
 echo -e "\n~~~~~ Blackjack Simulator ~~~~~\n"
 
 MAIN_MENU() {
@@ -11,7 +9,7 @@ MAIN_MENU() {
 	fi
 
 	echo "What would you like to do?"
-	echo -e "\n1. New Hand\n2. Discard All Cards\n3. Add New Deck\n4. Display Card Count\n5. Exit\n6. Format PostgreSQL"
+	echo -e "\n1. New Hand\n2. Discard All Cards\n3. Add New Deck\n4. Display Card Count\n5. Format PostgreSQL\n6. Display Cards in Deck\n0. Exit"
 	read MAIN_MENU_SELECTION
 
 	case $MAIN_MENU_SELECTION in
@@ -19,15 +17,15 @@ MAIN_MENU() {
 		2) DISCARD_ALL_CARDS ;;
 		3) ADD_NEW_DECK ;;
 		4) DISPLAY_CARD_COUNT ;;
-		5) EXIT ;;
-		6) FORMAT_POSTGRESQL ;;
+		5) FORMAT_POSTGRESQL ;;
+		6) DISPLAY_CARDS_IN_DECK ;;
+		0) EXIT ;;
 		*) MAIN_MENU "Please enter a valid option." ;;
 	esac
 }
 
 NEW_HAND(){
 echo -e "\nThank you for stopping in.\n"
-$PSQL "SELECT faces.face_name, suits.suit_name FROM ((cards INNER JOIN faces ON cards.face_id = faces.face_id) INNER JOIN suits ON cards.suit_id = suits.suit_id);"
 MAIN_MENU
 }
 
@@ -44,6 +42,11 @@ echo -e "\nAdded new deck.\n"
 MAIN_MENU
 }
 
+DISPLAY_CARDS_IN_DECK(){
+$PSQL "SELECT faces.face_name, suits.suit_name FROM ((cards INNER JOIN faces ON cards.face_id = faces.face_id) INNER JOIN suits ON cards.suit_id = suits.suit_id);"
+MAIN_MENU
+}
+
 DISPLAY_CARD_COUNT(){
 $PSQL "SELECT SUM(card_count) FROM cards;"
 $PSQL "SELECT SUM(card_count_complex) FROM cards;"
@@ -53,12 +56,13 @@ MAIN_MENU
 }
 
 FORMAT_POSTGRESQL(){
-$PSQL "DROP TABLE IF EXISTS faces CASCADE; DROP TABLE IF EXISTS locations CASCADE; DROP TABLE IF EXISTS suits CASCADE; DROP TABLE IF EXISTS cards CASCADE;"
+$PSQL "DROP TABLE IF EXISTS faces CASCADE; DROP TABLE IF EXISTS locations CASCADE; DROP TABLE IF EXISTS suits CASCADE; DROP TABLE IF EXISTS cards CASCADE; DROP TABLE IF EXISTS scores CASCADE;"
 $PSQL "CREATE TABLE locations(location_id SMALLINT GENERATED ALWAYS AS IDENTITY, location_name VARCHAR(255) NOT NULL, PRIMARY KEY(location_id));"
 $PSQL "CREATE TABLE suits(suit_id SMALLINT GENERATED ALWAYS AS IDENTITY, suit_name VARCHAR(255) NOT NULL, PRIMARY KEY(suit_id));"
-$PSQL "CREATE TABLE faces(face_id SMALLINT GENERATED ALWAYS AS IDENTITY, face_name VARCHAR(255) NOT NULL, face_value SMALLINT NOT NULL, PRIMARY KEY(face_id)); INSERT INTO faces(face_name, face_value) 
-VALUES('Ace', 1), ('Two', 2), ('Three', 3), ('Four', 4), ('Five', 5), ('Six', 6), ('Seven', 7), ('Eight', 8), ('Nine', 9), ('Ten', 10), ('Jack', 10), ('Queen', 10), ('King', 10);"
+$PSQL "CREATE TABLE faces(face_id SMALLINT GENERATED ALWAYS AS IDENTITY, face_name VARCHAR(255) NOT NULL, face_value SMALLINT NOT NULL, PRIMARY KEY(face_id)); 
+$PSQL "INSERT INTO faces(face_name, face_value) VALUES('Ace', 1), ('Two', 2), ('Three', 3), ('Four', 4), ('Five', 5), ('Six', 6), ('Seven', 7), ('Eight', 8), ('Nine', 9), ('Ten', 10), ('Jack', 10), ('Queen', 10), ('King', 10);"
 $PSQL "CREATE TABLE cards(card_id INT GENERATED ALWAYS AS IDENTITY, face_id SMALLINT, suit_id SMALLINT, location_id SMALLINT, PRIMARY KEY(card_id), CONSTRAINT fk_face FOREIGN KEY(face_id) REFERENCES faces(face_id) ON DELETE CASCADE, CONSTRAINT fk_suit FOREIGN KEY(suit_id) REFERENCES suits(suit_id) ON DELETE CASCADE, CONSTRAINT fk_location FOREIGN KEY(location_id) REFERENCES locations(location_id) ON DELETE CASCADE);"
+$PSQL "CREATE TABLE scores(score_id INT GENERATED ALWAYS AS IDENTITY, turn_id INT, location_id SMALLINT, score int NOT NULL, PRIMARY KEY(score_id));"
 MAIN_MENU
 }
 
